@@ -1,28 +1,27 @@
-import type React from 'react'
+export {}
 
-declare global {
+type DHTML<E extends import('react').HTMLAttributes<HTMLElement>> =
+  import('react').DetailedHTMLProps<E, HTMLElement>
+
+declare module 'react/jsx-runtime' {
   namespace JSX {
     interface IntrinsicElements {
-      'md-chip-set': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>
-      'md-filter-chip': React.DetailedHTMLProps<
-        React.HTMLAttributes<HTMLElement> & {
+      'md-chip-set': DHTML<import('react').HTMLAttributes<HTMLElement>>
+      'md-filter-chip': DHTML<
+        import('react').HTMLAttributes<HTMLElement> & {
           label?: string
           selected?: boolean
-        },
-        HTMLElement
+        }
       >
-      'md-outlined-text-field': React.DetailedHTMLProps<
-        React.HTMLAttributes<HTMLElement> & {
+      'md-outlined-text-field': DHTML<
+        import('react').HTMLAttributes<HTMLElement> & {
           label?: string
           type?: string
           rows?: number
           value?: string
           placeholder?: string
-        },
-        HTMLElement
+        }
       >
     }
   }
 }
-
-export {}
