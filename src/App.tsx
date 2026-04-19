@@ -23,10 +23,10 @@ export default function App() {
     placedPlants,
     addPlant,
     updatePlant,
-    removePlant,
     removePlacedPlant,
     placePlant,
     movePlacedPlant,
+    updatePlacedPlant,
   } = useGardenStore()
 
   const [pendingDrop, setPendingDrop] = useState<PendingDrop | null>(null)
@@ -97,55 +97,56 @@ export default function App() {
   }, [])
 
   return (
-    <div className="h-screen w-screen flex overflow-hidden bg-[#f1efec]">
+    <div className="h-screen w-screen overflow-hidden relative bg-[#f1efec]">
+      {/* Canvas fills full viewport */}
+      <GardenCanvas
+        plants={plants}
+        placedPlants={placedPlants}
+        selectedPlacedId={selectedPlacedId}
+        activeFilter={activeFilter}
+        onSelectPlaced={handleSelectPlaced}
+        onMovePlaced={movePlacedPlant}
+        onDropPlant={handleDropPlant}
+        onCategoryDrop={handleCategoryDrop}
+        zoom={zoom}
+      />
+
+      {/* Sidebar overlay */}
       <AnimatePresence initial={false}>
         {sidebarOpen && (
           <motion.div
             key="sidebar"
-            initial={{ width: 0, opacity: 0 }}
-            animate={{ width: 256, opacity: 1 }}
-            exit={{ width: 0, opacity: 0 }}
+            className="absolute top-0 left-0 h-full z-20"
+            style={{ width: 256 }}
+            initial={{ x: -256 }}
+            animate={{ x: 0 }}
+            exit={{ x: -256 }}
             transition={{ type: 'spring', damping: 28, stiffness: 280 }}
-            className="overflow-hidden shrink-0 h-full"
           >
             <Sidebar
               plants={plants}
               activeFilter={activeFilter}
               onFilterChange={handleFilterChange}
-              onRemovePlant={removePlant}
               onSelectPlant={handleSelectCatalogPlant}
+              onClose={() => setSidebarOpen(false)}
               onDragPlantId={() => {}}
             />
           </motion.div>
         )}
       </AnimatePresence>
 
-      <main className="flex-1 relative overflow-hidden">
-        <GardenCanvas
-          plants={plants}
-          placedPlants={placedPlants}
-          selectedPlacedId={selectedPlacedId}
-          activeFilter={activeFilter}
-          onSelectPlaced={handleSelectPlaced}
-          onMovePlaced={movePlacedPlant}
-          onDropPlant={handleDropPlant}
-          onCategoryDrop={handleCategoryDrop}
-          zoom={zoom}
-        />
-
-        {/* Sidebar toggle */}
+      {/* Hamburger — only when sidebar is closed */}
+      {!sidebarOpen && (
         <button
-          onClick={() => setSidebarOpen(v => !v)}
+          onClick={() => setSidebarOpen(true)}
           className="absolute top-4 left-4 z-20 w-9 h-9 rounded-xl bg-white/80 backdrop-blur border border-[#c4c9bf] shadow-sm flex items-center justify-center hover:bg-white transition-colors"
         >
-          <span className="material-symbols-rounded text-[#1d5200] text-xl leading-none select-none">
-            {sidebarOpen ? 'menu_open' : 'menu'}
-          </span>
+          <span className="material-symbols-rounded text-[#1d5200] text-xl leading-none select-none">menu</span>
         </button>
+      )}
 
-        <ZoomControls zoom={zoom} onZoom={handleZoom} />
-        <BottomCategoryBar />
-      </main>
+      <ZoomControls zoom={zoom} onZoom={handleZoom} />
+      <BottomCategoryBar />
 
       <CanvasSearch
         open={pendingDrop !== null}
@@ -158,7 +159,7 @@ export default function App() {
         plant={selectedPlant}
         placedPlant={selectedPlaced}
         onClose={() => { setSelectedPlacedId(null); setSelectedCatalogPlantId(null) }}
-        onUpdate={updatePlant}
+        onUpdatePlaced={updatePlacedPlant}
         onRemovePlaced={id => {
           removePlacedPlant(id)
           setSelectedPlacedId(null)

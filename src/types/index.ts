@@ -25,6 +25,7 @@ export interface PlacedPlant {
   x: number
   y: number
   rotation?: number
+  notes?: string
 }
 
 export interface GardenState {

@@ -50,6 +50,13 @@ export function useGardenStore() {
     }))
   }, [])
 
+  const updatePlacedPlant = useCallback((id: string, updates: Partial<PlacedPlant>) => {
+    setState(s => ({
+      ...s,
+      placedPlants: s.placedPlants.map(pp => pp.id === id ? { ...pp, ...updates } : pp),
+    }))
+  }, [])
+
   return {
     plants: state.plants,
     placedPlants: state.placedPlants,
@@ -59,5 +66,6 @@ export function useGardenStore() {
     placePlant,
     movePlacedPlant,
     removePlacedPlant,
+    updatePlacedPlant,
   }
 }

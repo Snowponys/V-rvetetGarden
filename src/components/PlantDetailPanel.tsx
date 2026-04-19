@@ -26,7 +26,7 @@ interface Props {
   plant: Plant | null
   placedPlant: PlacedPlant | null
   onClose: () => void
-  onUpdate: (id: string, updates: Partial<Plant>) => void
+  onUpdatePlaced: (id: string, updates: Partial<PlacedPlant>) => void
   onRemovePlaced: (id: string) => void
 }
 
@@ -35,16 +35,16 @@ function capitalize(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
-export function PlantDetailPanel({ plant, placedPlant, onClose, onUpdate, onRemovePlaced }: Props) {
-  const [notes, setNotes] = useState(plant?.notes ?? '')
+export function PlantDetailPanel({ plant, placedPlant, onClose, onUpdatePlaced, onRemovePlaced }: Props) {
+  const [notes, setNotes] = useState(placedPlant?.notes ?? '')
 
   useEffect(() => {
-    setNotes(plant?.notes ?? '')
-  }, [plant?.id])
+    setNotes(placedPlant?.notes ?? '')
+  }, [placedPlant?.id])
 
   function handleNotesBlur() {
-    if (plant && notes !== plant.notes) {
-      onUpdate(plant.id, { notes })
+    if (placedPlant && notes !== placedPlant.notes) {
+      onUpdatePlaced(placedPlant.id, { notes })
     }
   }
 
@@ -134,7 +134,7 @@ export function PlantDetailPanel({ plant, placedPlant, onClose, onUpdate, onRemo
 
             {/* Notes — only for placed plants */}
             {placedPlant && <md-outlined-text-field
-              key={plant.id}
+              key={placedPlant.id}
               label="Egna anteckningar"
               type="textarea"
               rows={3}

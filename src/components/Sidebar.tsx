@@ -15,17 +15,16 @@ declare module 'react/jsx-runtime' {
   }
 }
 
-
 interface Props {
   plants: Plant[]
   activeFilter: PlantCategory[]
   onFilterChange: (cat: PlantCategory) => void
-  onRemovePlant: (id: string) => void
   onSelectPlant: (plantId: string) => void
+  onClose: () => void
   onDragPlantId: (plantId: string) => void
 }
 
-export function Sidebar({ plants, activeFilter, onFilterChange, onRemovePlant, onSelectPlant, onDragPlantId }: Props) {
+export function Sidebar({ plants, activeFilter, onFilterChange, onSelectPlant, onClose, onDragPlantId }: Props) {
   const filtered = activeFilter.length === 0
     ? plants
     : plants.filter(p => activeFilter.includes(p.category))
@@ -46,9 +45,15 @@ export function Sidebar({ plants, activeFilter, onFilterChange, onRemovePlant, o
   ]
 
   return (
-    <aside className="w-64 h-full bg-[#e6e9e3] flex flex-col shrink-0 border-r border-[#c4c9bf]">
-      <div className="px-6 pt-6 pb-4">
+    <aside className="w-64 h-full bg-[#e6e9e3] flex flex-col shrink-0 rounded-tr-2xl rounded-br-2xl shadow-lg overflow-hidden">
+      <div className="px-6 pt-6 pb-4 flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-[#1d5200]">Vårvetet</h1>
+        <button
+          onClick={onClose}
+          className="w-8 h-8 rounded-full hover:bg-[#d4e8c2] flex items-center justify-center transition-colors"
+        >
+          <span className="material-symbols-rounded text-[#1d5200] text-xl leading-none select-none">menu_open</span>
+        </button>
       </div>
 
       {/* Filter chips */}
@@ -88,7 +93,6 @@ export function Sidebar({ plants, activeFilter, onFilterChange, onRemovePlant, o
                   <PlantListItem
                     key={plant.id}
                     plant={plant}
-                    onRemove={() => onRemovePlant(plant.id)}
                     onDragStart={() => onDragPlantId(plant.id)}
                     onSelect={() => onSelectPlant(plant.id)}
                   />
@@ -104,18 +108,16 @@ export function Sidebar({ plants, activeFilter, onFilterChange, onRemovePlant, o
 
 function PlantListItem({
   plant,
-  onRemove,
   onDragStart,
   onSelect,
 }: {
   plant: Plant
-  onRemove: () => void
   onDragStart: () => void
   onSelect: () => void
 }) {
   return (
     <div
-      className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-[#d4e8c2] cursor-grab active:cursor-grabbing group transition-colors"
+      className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-[#d4e8c2] cursor-grab active:cursor-grabbing transition-colors"
       draggable
       onClick={onSelect}
       onDragStart={(e: React.DragEvent) => {
@@ -123,13 +125,9 @@ function PlantListItem({
         onDragStart()
       }}
     >
-      <span className="flex-1 text-sm text-[#1d5200] font-medium truncate">{plant.commonName.charAt(0).toUpperCase() + plant.commonName.slice(1)}</span>
-      <button
-        onClick={e => { e.stopPropagation(); onRemove() }}
-        className="opacity-0 group-hover:opacity-100 transition-opacity w-6 h-6 rounded-full hover:bg-[#dde3d7] flex items-center justify-center"
-      >
-        <span className="material-symbols-rounded text-[#5ea143] text-base leading-none select-none">delete</span>
-      </button>
+      <span className="flex-1 text-sm text-[#1d5200] font-medium truncate">
+        {plant.commonName.charAt(0).toUpperCase() + plant.commonName.slice(1)}
+      </span>
     </div>
   )
 }
