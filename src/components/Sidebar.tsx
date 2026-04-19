@@ -3,17 +3,6 @@ import '@material/web/chips/filter-chip.js'
 import type { Plant, PlantCategory } from '../types'
 import { CATEGORY_LABEL, ALL_CATEGORIES } from '../utils/plantIcons'
 
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      'md-chip-set': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>
-      'md-filter-chip': React.DetailedHTMLProps<
-        React.HTMLAttributes<HTMLElement> & { label?: string; selected?: boolean },
-        HTMLElement
-      >
-    }
-  }
-}
 
 interface Props {
   plants: Plant[]
