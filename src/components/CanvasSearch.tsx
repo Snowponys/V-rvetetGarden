@@ -91,7 +91,7 @@ export function CanvasSearch({ open, categoryHint, onClose, onPlantReady }: Prop
             transition={{ type: 'spring', damping: 28, stiffness: 340 }}
           >
             {/* Search bar */}
-            <div className="bg-[#f1efec] rounded-full shadow-lg border border-[#c4c9bf] flex items-center gap-3 px-5 py-4">
+            <div className="bg-[#F7FBF1] rounded-full shadow-lg border border-[#c4c9bf] flex items-center gap-3 px-5 py-4">
               <span className="material-symbols-rounded text-[#5ea143] text-xl leading-none shrink-0 select-none">search</span>
               <input
                 ref={inputRef}
@@ -114,7 +114,7 @@ export function CanvasSearch({ open, categoryHint, onClose, onPlantReady }: Prop
             <AnimatePresence>
               {showCard && (
                 <motion.div
-                  className="bg-[#f1efec] rounded-[20px] shadow-lg border border-[#c4c9bf] overflow-hidden"
+                  className="bg-[#F7FBF1] rounded-[20px] shadow-lg border border-[#c4c9bf] overflow-hidden"
                   initial={{ opacity: 0, y: -6 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -6 }}

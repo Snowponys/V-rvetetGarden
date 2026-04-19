@@ -97,7 +97,7 @@ export default function App() {
   }, [])
 
   return (
-    <div className="h-screen w-screen overflow-hidden relative bg-[#f1efec]">
+    <div className="h-screen w-screen overflow-hidden relative bg-[#F7FBF1]">
       {/* Canvas fills full viewport */}
       <GardenCanvas
         plants={plants}
@@ -125,6 +125,7 @@ export default function App() {
           >
             <Sidebar
               plants={plants}
+              placedPlants={placedPlants}
               activeFilter={activeFilter}
               onFilterChange={handleFilterChange}
               onSelectPlant={handleSelectCatalogPlant}

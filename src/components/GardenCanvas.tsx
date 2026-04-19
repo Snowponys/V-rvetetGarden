@@ -15,6 +15,15 @@ const CATEGORY_ICON: Record<PlantCategory, string> = {
 const PLANT_RADIUS = 12
 const ICON_SIZE = 14
 
+const CATEGORY_RADIUS: Partial<Record<PlantCategory, number>> = {
+  träd: 24,
+  buske: 24,
+}
+const CATEGORY_ICON_SIZE: Partial<Record<PlantCategory, number>> = {
+  träd: 28,
+  buske: 28,
+}
+
 interface Props {
   plants: Plant[]
   placedPlants: PlacedPlant[]
@@ -52,6 +61,13 @@ export function GardenCanvas({
   const centeredRef = useRef(false)
 
   const [blueprint] = useImage('/blueprint/Garden_blueprint.svg')
+  const [fontReady, setFontReady] = useState(false)
+
+  useEffect(() => {
+    document.fonts.load(`${ICON_SIZE + 2}px "Material Symbols Rounded"`)
+      .then(() => setFontReady(true))
+      .catch(() => setFontReady(true))
+  }, [])
 
   useEffect(() => {
     const el = containerRef.current
@@ -132,7 +148,7 @@ export function GardenCanvas({
   return (
     <div
       ref={containerRef}
-      className="absolute inset-0 overflow-hidden bg-[#f1efec]"
+      className="absolute inset-0 overflow-hidden bg-[#FDFCF9]"
       onDrop={handleDrop}
       onDragOver={e => e.preventDefault()}
     >
@@ -171,6 +187,7 @@ export function GardenCanvas({
                 plant={plant}
                 selected={selectedPlacedId === pp.id}
                 dimmed={dimmed}
+                fontReady={fontReady}
                 onSelect={() => onSelectPlaced(pp.id)}
                 onMove={(x, y) => onMovePlaced(pp.id, x, y)}
               />
@@ -187,6 +204,7 @@ function PlantNode({
   plant,
   selected,
   dimmed,
+  fontReady,
   onSelect,
   onMove,
 }: {
@@ -194,9 +212,13 @@ function PlantNode({
   plant: Plant
   selected: boolean
   dimmed: boolean
+  fontReady: boolean
   onSelect: () => void
   onMove: (x: number, y: number) => void
 }) {
+  const r = CATEGORY_RADIUS[plant.category] ?? PLANT_RADIUS
+  const iconSize = CATEGORY_ICON_SIZE[plant.category] ?? ICON_SIZE
+
   return (
     <Group
       x={placed.x}
@@ -209,32 +231,34 @@ function PlantNode({
     >
       {selected && (
         <Circle
-          radius={PLANT_RADIUS + 5}
+          radius={r + 5}
           stroke={CATEGORY_COLOR[plant.category]}
           strokeWidth={2.5}
           dash={[6, 4]}
         />
       )}
       <Circle
-        radius={PLANT_RADIUS}
+        radius={r}
         fill="white"
         shadowBlur={selected ? 12 : 6}
         shadowOpacity={0.15}
         shadowColor="#000"
       />
-      <Text
-        text={CATEGORY_ICON[plant.category]}
-        fontFamily="Material Symbols Rounded"
-        fontSize={ICON_SIZE + 2}
-        fill={CATEGORY_COLOR[plant.category]}
-        x={-PLANT_RADIUS}
-        y={-PLANT_RADIUS}
-        width={PLANT_RADIUS * 2}
-        height={PLANT_RADIUS * 2}
-        align="center"
-        verticalAlign="middle"
-        listening={false}
-      />
+      {fontReady && (
+        <Text
+          text={CATEGORY_ICON[plant.category]}
+          fontFamily="Material Symbols Rounded"
+          fontSize={iconSize + 2}
+          fill={CATEGORY_COLOR[plant.category]}
+          x={-r}
+          y={-r}
+          width={r * 2}
+          height={r * 2}
+          align="center"
+          verticalAlign="middle"
+          listening={false}
+        />
+      )}
     </Group>
   )
 }

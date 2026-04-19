@@ -5,7 +5,7 @@ interface Props {
 
 export function ZoomControls({ zoom, onZoom }: Props) {
   return (
-    <div className="fixed bottom-5 right-6 flex items-center gap-2 bg-[#f1efec]/90 backdrop-blur-md rounded-full shadow-xl border border-[#c4c9bf] px-3 py-2 z-30">
+    <div className="fixed bottom-5 right-6 flex items-center gap-2 bg-[#F7FBF1]/90 backdrop-blur-md rounded-full shadow-xl border border-[#c4c9bf] px-3 py-2 z-30">
       <button
         onClick={() => onZoom(-0.1)}
         className="w-11 h-11 rounded-full flex items-center justify-center hover:bg-[#d4e8c2] transition-colors"

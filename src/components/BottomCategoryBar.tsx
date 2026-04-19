@@ -23,7 +23,7 @@ function createDragGhost(label: string, icon: string): HTMLElement {
     'gap:8px',
     'padding:8px 16px',
     'border-radius:9999px',
-    "background:#f1efec",
+    "background:#F7FBF1",
     'border:1px solid #c4c9bf',
     "font-family:'Google Sans',system-ui,sans-serif",
     'font-size:14px',
@@ -49,7 +49,7 @@ function createDragGhost(label: string, icon: string): HTMLElement {
 export function BottomCategoryBar() {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-30 flex justify-center pb-5 pointer-events-none">
-      <div className="flex items-center gap-2 bg-[#f1efec]/90 backdrop-blur-md rounded-full shadow-xl border border-[#c4c9bf] px-3 py-2 pointer-events-auto">
+      <div className="flex items-center gap-2 bg-[#F7FBF1]/90 backdrop-blur-md rounded-full shadow-xl border border-[#c4c9bf] px-3 py-2 pointer-events-auto">
         {CATEGORIES.map(cat => (
           <div
             key={cat.hint}

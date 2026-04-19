@@ -52,7 +52,7 @@ export function PlantDetailPanel({ plant, placedPlant, onClose, onUpdatePlaced, 
     <AnimatePresence>
       {plant && (
         <motion.div
-          className="fixed right-4 top-4 bottom-4 w-80 bg-[#f1efec] rounded-[24px] shadow-2xl flex flex-col z-40 overflow-hidden"
+          className="fixed right-4 top-4 bottom-4 w-80 bg-[#F7FBF1] rounded-[24px] shadow-2xl flex flex-col z-40 overflow-hidden"
           initial={{ x: 320, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           exit={{ x: 320, opacity: 0 }}
