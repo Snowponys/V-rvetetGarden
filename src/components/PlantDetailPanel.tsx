@@ -4,6 +4,23 @@ import '@material/web/textfield/outlined-text-field.js'
 import type { Plant, PlacedPlant } from '../types'
 import { CATEGORY_LABEL } from '../utils/plantIcons'
 
+declare module 'react/jsx-runtime' {
+  namespace JSX {
+    interface IntrinsicElements {
+      'md-outlined-text-field': import('react').DetailedHTMLProps<
+        import('react').HTMLAttributes<HTMLElement> & {
+          label?: string
+          type?: string
+          rows?: number
+          value?: string
+          placeholder?: string
+        },
+        HTMLElement
+      >
+    }
+  }
+}
+
 
 interface Props {
   plant: Plant | null
