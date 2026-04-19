@@ -24,12 +24,14 @@ export default function App() {
     addPlant,
     updatePlant,
     removePlant,
+    removePlacedPlant,
     placePlant,
     movePlacedPlant,
   } = useGardenStore()
 
   const [pendingDrop, setPendingDrop] = useState<PendingDrop | null>(null)
   const [selectedPlacedId, setSelectedPlacedId] = useState<string | null>(null)
+  const [selectedCatalogPlantId, setSelectedCatalogPlantId] = useState<string | null>(null)
   const [zoom, setZoom] = useState(1)
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [activeFilter, setActiveFilter] = useState<PlantCategory[]>([])
@@ -43,7 +45,17 @@ export default function App() {
   const selectedPlaced = placedPlants.find(pp => pp.id === selectedPlacedId) ?? null
   const selectedPlant = selectedPlaced
     ? (plants.find(p => p.id === selectedPlaced.plantId) ?? null)
-    : null
+    : (plants.find(p => p.id === selectedCatalogPlantId) ?? null)
+
+  const handleSelectPlaced = useCallback((id: string | null) => {
+    setSelectedPlacedId(id)
+    setSelectedCatalogPlantId(null)
+  }, [])
+
+  const handleSelectCatalogPlant = useCallback((plantId: string) => {
+    setSelectedCatalogPlantId(plantId)
+    setSelectedPlacedId(null)
+  }, [])
 
   const handleCategoryDrop = useCallback((pending: PendingDrop) => {
     setPendingDrop(pending)
@@ -51,7 +63,9 @@ export default function App() {
 
   const handleDropPlant = useCallback(
     (plantId: string, x: number, y: number) => {
-      placePlant(plantId, x, y)
+      const placed = placePlant(plantId, x, y)
+      setSelectedPlacedId(placed.id)
+      setSelectedCatalogPlantId(null)
     },
     [placePlant],
   )
@@ -62,6 +76,7 @@ export default function App() {
       const newPlant = addPlant(plant)
       const placed = placePlant(newPlant.id, pendingDrop.x, pendingDrop.y)
       setSelectedPlacedId(placed.id)
+      setSelectedCatalogPlantId(null)
       setPendingDrop(null)
 
       Promise.all([
@@ -98,6 +113,7 @@ export default function App() {
               activeFilter={activeFilter}
               onFilterChange={handleFilterChange}
               onRemovePlant={removePlant}
+              onSelectPlant={handleSelectCatalogPlant}
               onDragPlantId={() => {}}
             />
           </motion.div>
@@ -110,7 +126,7 @@ export default function App() {
           placedPlants={placedPlants}
           selectedPlacedId={selectedPlacedId}
           activeFilter={activeFilter}
-          onSelectPlaced={setSelectedPlacedId}
+          onSelectPlaced={handleSelectPlaced}
           onMovePlaced={movePlacedPlant}
           onDropPlant={handleDropPlant}
           onCategoryDrop={handleCategoryDrop}
@@ -141,11 +157,10 @@ export default function App() {
       <PlantDetailPanel
         plant={selectedPlant}
         placedPlant={selectedPlaced}
-        onClose={() => setSelectedPlacedId(null)}
+        onClose={() => { setSelectedPlacedId(null); setSelectedCatalogPlantId(null) }}
         onUpdate={updatePlant}
         onRemovePlaced={id => {
-          const placed = placedPlants.find(pp => pp.id === id)
-          if (placed) removePlant(placed.plantId)
+          removePlacedPlant(id)
           setSelectedPlacedId(null)
         }}
       />

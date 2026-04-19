@@ -21,10 +21,11 @@ interface Props {
   activeFilter: PlantCategory[]
   onFilterChange: (cat: PlantCategory) => void
   onRemovePlant: (id: string) => void
+  onSelectPlant: (plantId: string) => void
   onDragPlantId: (plantId: string) => void
 }
 
-export function Sidebar({ plants, activeFilter, onFilterChange, onRemovePlant, onDragPlantId }: Props) {
+export function Sidebar({ plants, activeFilter, onFilterChange, onRemovePlant, onSelectPlant, onDragPlantId }: Props) {
   const filtered = activeFilter.length === 0
     ? plants
     : plants.filter(p => activeFilter.includes(p.category))
@@ -89,6 +90,7 @@ export function Sidebar({ plants, activeFilter, onFilterChange, onRemovePlant, o
                     plant={plant}
                     onRemove={() => onRemovePlant(plant.id)}
                     onDragStart={() => onDragPlantId(plant.id)}
+                    onSelect={() => onSelectPlant(plant.id)}
                   />
                 ))}
               </div>
@@ -104,15 +106,18 @@ function PlantListItem({
   plant,
   onRemove,
   onDragStart,
+  onSelect,
 }: {
   plant: Plant
   onRemove: () => void
   onDragStart: () => void
+  onSelect: () => void
 }) {
   return (
     <div
       className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-[#d4e8c2] cursor-grab active:cursor-grabbing group transition-colors"
       draggable
+      onClick={onSelect}
       onDragStart={(e: React.DragEvent) => {
         e.dataTransfer.setData('plantId', plant.id)
         onDragStart()

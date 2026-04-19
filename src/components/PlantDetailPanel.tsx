@@ -50,7 +50,7 @@ export function PlantDetailPanel({ plant, placedPlant, onClose, onUpdate, onRemo
 
   return (
     <AnimatePresence>
-      {plant && placedPlant && (
+      {plant && (
         <motion.div
           className="fixed right-4 top-4 bottom-4 w-80 bg-[#f1efec] rounded-[24px] shadow-2xl flex flex-col z-40 overflow-hidden"
           initial={{ x: 320, opacity: 0 }}
@@ -132,8 +132,8 @@ export function PlantDetailPanel({ plant, placedPlant, onClose, onUpdate, onRemo
               </>
             )}
 
-            {/* Notes — M3 outlined text field */}
-            <md-outlined-text-field
+            {/* Notes — only for placed plants */}
+            {placedPlant && <md-outlined-text-field
               key={plant.id}
               label="Egna anteckningar"
               type="textarea"
@@ -143,18 +143,19 @@ export function PlantDetailPanel({ plant, placedPlant, onClose, onUpdate, onRemo
               style={{ width: '100%', marginTop: '8px' }}
               onInput={(e: React.SyntheticEvent) => setNotes((e.target as HTMLInputElement).value)}
               onBlur={handleNotesBlur}
-            />
+            />}
           </div>
 
-          {/* Footer */}
-          <div className="p-4 border-t border-[#c4c9bf]">
-            <button
-              onClick={() => { onRemovePlaced(placedPlant.id); onClose() }}
-              className="w-full flex items-center justify-center py-2.5 rounded-full bg-[#ffdad6] hover:bg-[#ffb4ab] text-[#ff5449] text-sm font-medium transition-colors"
-            >
-              Ta bort från ritningen
-            </button>
-          </div>
+          {placedPlant && (
+            <div className="p-4 border-t border-[#c4c9bf]">
+              <button
+                onClick={() => { onRemovePlaced(placedPlant.id); onClose() }}
+                className="w-full flex items-center justify-center py-2.5 rounded-full bg-[#ffdad6] hover:bg-[#ffb4ab] text-[#ff5449] text-sm font-medium transition-colors"
+              >
+                Ta bort från ritningen
+              </button>
+            </div>
+          )}
         </motion.div>
       )}
     </AnimatePresence>
