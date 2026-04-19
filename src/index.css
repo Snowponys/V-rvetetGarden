@@ -1,0 +1,46 @@
+@import "tailwindcss";
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: 'Google Sans', system-ui, -apple-system, sans-serif;
+}
+
+:root {
+  --md-ref-typeface-plain: 'Google Sans', system-ui, sans-serif;
+  --md-ref-typeface-brand: 'Google Sans', system-ui, sans-serif;
+}
+
+md-filter-chip {
+  --md-filter-chip-label-text-color: #1d5200;
+  --md-filter-chip-outline-color: #c4c9bf;
+  --md-filter-chip-flat-container-color: white;
+  --md-filter-chip-hover-state-layer-color: #1d5200;
+  --md-filter-chip-selected-container-color: #d4e8c2;
+  --md-filter-chip-selected-label-text-color: #1d5200;
+  --md-filter-chip-selected-hover-state-layer-color: #1d5200;
+  --md-filter-chip-selected-outline-color: transparent;
+}
+
+md-filter-chip {
+  --md-filter-chip-icon-size: 0;
+}
+
+md-filter-chip::part(checkmark) {
+  display: none;
+}
+
+md-outlined-text-field {
+  --md-outlined-text-field-input-text-color: #1d5200;
+  --md-outlined-text-field-label-text-color: #5ea143;
+  --md-outlined-text-field-focus-label-text-color: #1d5200;
+  --md-outlined-text-field-outline-color: #c4c9bf;
+  --md-outlined-text-field-hover-outline-color: #5ea143;
+  --md-outlined-text-field-focus-outline-color: #1d5200;
+  --md-outlined-text-field-caret-color: #1d5200;
+}
