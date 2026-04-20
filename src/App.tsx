@@ -109,6 +109,7 @@ export default function App() {
         onDropPlant={handleDropPlant}
         onCategoryDrop={handleCategoryDrop}
         zoom={zoom}
+        onZoomChange={z => setZoom(Math.min(3, Math.max(0.5, z)))}
       />
 
       {/* Sidebar overlay */}

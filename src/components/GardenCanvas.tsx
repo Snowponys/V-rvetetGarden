@@ -24,6 +24,12 @@ const CATEGORY_ICON_SIZE: Partial<Record<PlantCategory, number>> = {
   buske: 28,
 }
 
+const ZOOM_MIN = 0.5
+const ZOOM_MAX = 3
+const WHEEL_SENSITIVITY = 0.006
+const WHEEL_MAX_STEP = 0.15
+const LERP = 0.22
+
 interface Props {
   plants: Plant[]
   placedPlants: PlacedPlant[]
@@ -34,11 +40,20 @@ interface Props {
   onDropPlant: (plantId: string, x: number, y: number) => void
   onCategoryDrop: (pending: { x: number; y: number; categoryHint: string }) => void
   zoom: number
+  onZoomChange: (zoom: number) => void
 }
 
 function matchesFilter(category: PlantCategory, filter: PlantCategory[]): boolean {
   if (filter.length === 0) return true
   return filter.includes(category)
+}
+
+function tdist(t1: Touch, t2: Touch) {
+  return Math.sqrt((t2.clientX - t1.clientX) ** 2 + (t2.clientY - t1.clientY) ** 2)
+}
+
+function tmid(t1: Touch, t2: Touch) {
+  return { x: (t1.clientX + t2.clientX) / 2, y: (t1.clientY + t2.clientY) / 2 }
 }
 
 export function GardenCanvas({
@@ -51,14 +66,79 @@ export function GardenCanvas({
   onDropPlant,
   onCategoryDrop,
   zoom,
+  onZoomChange,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const stageRef = useRef<Konva.Stage>(null)
   const [stagePos, setStagePos] = useState({ x: 0, y: 0 })
   const [stageSize, setStageSize] = useState({ w: 1024, h: 768 })
-  const [isDraggingStage, setIsDraggingStage] = useState(false)
-  const lastPointer = useRef<{ x: number; y: number } | null>(null)
   const centeredRef = useRef(false)
+
+  // ── Animation refs (always current, avoid stale-closure issues in RAF) ──
+  const animZoom = useRef(zoom)
+  const animPos = useRef({ x: 0, y: 0 })
+  // Keep refs in sync with React state/props
+  useEffect(() => { animZoom.current = zoom }, [zoom])
+  const syncPos = useCallback((p: { x: number; y: number }) => {
+    animPos.current = p
+    setStagePos(p)
+  }, [])
+
+  // ── Wheel smooth animation ──
+  const wheelTarget = useRef<{ zoom: number; pos: { x: number; y: number } } | null>(null)
+  const rafId = useRef<number | null>(null)
+  const isGestureZoom = useRef(false)
+
+  function wheelStep() {
+    const t = wheelTarget.current
+    if (!t) return
+
+    const cz = animZoom.current
+    const cp = animPos.current
+    const nz = cz + (t.zoom - cz) * LERP
+    const nx = cp.x + (t.pos.x - cp.x) * LERP
+    const ny = cp.y + (t.pos.y - cp.y) * LERP
+
+    const settled =
+      Math.abs(nz - t.zoom) < 0.0005 &&
+      Math.abs(nx - t.pos.x) < 0.3 &&
+      Math.abs(ny - t.pos.y) < 0.3
+
+    if (settled) {
+      animZoom.current = t.zoom
+      animPos.current = t.pos
+      setStagePos(t.pos)
+      onZoomChange(t.zoom)
+      wheelTarget.current = null
+      isGestureZoom.current = false
+      rafId.current = null
+    } else {
+      animZoom.current = nz
+      syncPos({ x: nx, y: ny })
+      onZoomChange(nz)
+      rafId.current = requestAnimationFrame(wheelStep)
+    }
+  }
+
+  useEffect(() => () => { if (rafId.current) cancelAnimationFrame(rafId.current) }, [])
+
+  // ── Touch panning (single finger) ──
+  const panTouch = useRef<{ x: number; y: number } | null>(null)
+
+  // ── Pinch zoom (two fingers) ──
+  const pinch = useRef<{
+    dist: number
+    zoom: number
+    pos: { x: number; y: number }
+    mid: { x: number; y: number }
+  } | null>(null)
+
+  // ── Mouse panning ──
+  const [isDragging, setIsDragging] = useState(false)
+  const lastMouse = useRef<{ x: number; y: number } | null>(null)
+
+  // ── Track previous zoom to detect ZoomControls changes ──
+  const prevZoom = useRef(zoom)
 
   const [blueprint] = useImage('/blueprint/Garden_blueprint.svg')
   const [fontReady, setFontReady] = useState(false)
@@ -79,12 +159,13 @@ export function GardenCanvas({
     return () => ro.disconnect()
   }, [])
 
-  const clampPos = useCallback(
-    (x: number, y: number) => {
+  const clamp = useCallback(
+    (x: number, y: number, z?: number) => {
       if (!blueprint) return { x, y }
       const margin = 100
-      const bw = blueprint.naturalWidth * zoom
-      const bh = blueprint.naturalHeight * zoom
+      const eff = z ?? zoom
+      const bw = blueprint.naturalWidth * eff
+      const bh = blueprint.naturalHeight * eff
       return {
         x: Math.min(stageSize.w - margin, Math.max(margin - bw, x)),
         y: Math.min(stageSize.h - margin, Math.max(margin - bh, y)),
@@ -97,12 +178,27 @@ export function GardenCanvas({
   useEffect(() => {
     if (blueprint && !centeredRef.current && stageSize.w > 0) {
       centeredRef.current = true
-      setStagePos({
+      const p = {
         x: (stageSize.w - blueprint.naturalWidth) / 2,
         y: (stageSize.h - blueprint.naturalHeight) / 2,
-      })
+      }
+      animPos.current = p
+      setStagePos(p)
     }
   }, [blueprint, stageSize])
+
+  // When ZoomControls changes zoom (not gesture), zoom around viewport center
+  useEffect(() => {
+    const prev = prevZoom.current
+    prevZoom.current = zoom
+    if (Math.abs(zoom - prev) < 0.0001 || isGestureZoom.current) return
+    const cx = stageSize.w / 2
+    const cy = stageSize.h / 2
+    const scale = zoom / prev
+    const p = clamp(cx - (cx - animPos.current.x) * scale, cy - (cy - animPos.current.y) * scale, zoom)
+    animPos.current = p
+    setStagePos(p)
+  }, [zoom]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const getCanvasPos = useCallback(
     (clientX: number, clientY: number) => {
@@ -125,24 +221,112 @@ export function GardenCanvas({
     else if (categoryHint) onCategoryDrop({ ...pos, categoryHint })
   }
 
-  function handleStageMouseDown(e: Konva.KonvaEventObject<MouseEvent>) {
+  // ── Mouse pan ──
+  function handleMouseDown(e: Konva.KonvaEventObject<MouseEvent>) {
     if (e.target === e.target.getStage()) {
-      setIsDraggingStage(true)
-      lastPointer.current = { x: e.evt.clientX, y: e.evt.clientY }
+      setIsDragging(true)
+      lastMouse.current = { x: e.evt.clientX, y: e.evt.clientY }
     }
   }
 
-  function handleStageMouseMove(e: Konva.KonvaEventObject<MouseEvent>) {
-    if (!isDraggingStage || !lastPointer.current) return
-    const dx = e.evt.clientX - lastPointer.current.x
-    const dy = e.evt.clientY - lastPointer.current.y
-    lastPointer.current = { x: e.evt.clientX, y: e.evt.clientY }
-    setStagePos(p => clampPos(p.x + dx, p.y + dy))
+  function handleMouseMove(e: Konva.KonvaEventObject<MouseEvent>) {
+    if (!isDragging || !lastMouse.current) return
+    const dx = e.evt.clientX - lastMouse.current.x
+    const dy = e.evt.clientY - lastMouse.current.y
+    lastMouse.current = { x: e.evt.clientX, y: e.evt.clientY }
+    const p = clamp(animPos.current.x + dx, animPos.current.y + dy)
+    syncPos(p)
   }
 
-  function handleStageMouseUp() {
-    setIsDraggingStage(false)
-    lastPointer.current = null
+  function handleMouseUp() {
+    setIsDragging(false)
+    lastMouse.current = null
+  }
+
+  // ── Wheel zoom (smooth) ──
+  function handleWheel(e: Konva.KonvaEventObject<WheelEvent>) {
+    e.evt.preventDefault()
+    const raw = -e.evt.deltaY * WHEEL_SENSITIVITY
+    const delta = Math.max(-WHEEL_MAX_STEP, Math.min(WHEEL_MAX_STEP, raw))
+
+    const fromZoom = wheelTarget.current?.zoom ?? animZoom.current
+    const fromPos = wheelTarget.current?.pos ?? animPos.current
+    const newZoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, fromZoom * (1 + delta)))
+    if (newZoom === fromZoom) return
+
+    const rect = containerRef.current!.getBoundingClientRect()
+    const px = e.evt.clientX - rect.left
+    const py = e.evt.clientY - rect.top
+    const scale = newZoom / fromZoom
+    const newPos = clamp(px - (px - fromPos.x) * scale, py - (py - fromPos.y) * scale, newZoom)
+
+    isGestureZoom.current = true
+    wheelTarget.current = { zoom: newZoom, pos: newPos }
+    if (!rafId.current) rafId.current = requestAnimationFrame(wheelStep)
+  }
+
+  // ── Touch: single-finger pan + two-finger pinch ──
+  function handleTouchStart(e: Konva.KonvaEventObject<TouchEvent>) {
+    const touches = e.evt.touches
+    if (touches.length === 1 && e.target === e.target.getStage()) {
+      panTouch.current = { x: touches[0].clientX, y: touches[0].clientY }
+    } else if (touches.length === 2) {
+      e.evt.preventDefault()
+      panTouch.current = null
+      const [t1, t2] = [touches[0], touches[1]]
+      const rect = containerRef.current!.getBoundingClientRect()
+      const mid = tmid(t1, t2)
+      isGestureZoom.current = true
+      pinch.current = {
+        dist: tdist(t1, t2),
+        zoom: animZoom.current,
+        pos: { ...animPos.current },
+        mid: { x: mid.x - rect.left, y: mid.y - rect.top },
+      }
+    }
+  }
+
+  function handleTouchMove(e: Konva.KonvaEventObject<TouchEvent>) {
+    const touches = e.evt.touches
+    if (touches.length === 1 && panTouch.current) {
+      const dx = touches[0].clientX - panTouch.current.x
+      const dy = touches[0].clientY - panTouch.current.y
+      panTouch.current = { x: touches[0].clientX, y: touches[0].clientY }
+      const p = clamp(animPos.current.x + dx, animPos.current.y + dy)
+      syncPos(p)
+    } else if (touches.length === 2 && pinch.current) {
+      e.evt.preventDefault()
+      const [t1, t2] = [touches[0], touches[1]]
+      const rect = containerRef.current!.getBoundingClientRect()
+      const newDist = tdist(t1, t2)
+      const rawMid = tmid(t1, t2)
+      const newMid = { x: rawMid.x - rect.left, y: rawMid.y - rect.top }
+
+      const { dist: prevDist, zoom: prevZoom, pos: prevPos, mid: prevMid } = pinch.current
+      // Dampen scale to reduce over-sensitivity
+      const rawScale = newDist / prevDist
+      const scale = 1 + (rawScale - 1) * 0.85
+      const newZoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, prevZoom * scale))
+
+      // Simultaneous pan+zoom: new_pos = new_mid + (prev_pos - prev_mid) * scale
+      const effectiveScale = newZoom / prevZoom
+      const rawX = newMid.x + (prevPos.x - prevMid.x) * effectiveScale
+      const rawY = newMid.y + (prevPos.y - prevMid.y) * effectiveScale
+      const newPos = clamp(rawX, rawY, newZoom)
+
+      animZoom.current = newZoom
+      syncPos(newPos)
+      onZoomChange(newZoom)
+      pinch.current = { dist: newDist, zoom: newZoom, pos: newPos, mid: newMid }
+    }
+  }
+
+  function handleTouchEnd(e: Konva.KonvaEventObject<TouchEvent>) {
+    if (e.evt.touches.length === 0) panTouch.current = null
+    if (e.evt.touches.length < 2) {
+      pinch.current = null
+      isGestureZoom.current = false
+    }
   }
 
   return (
@@ -160,9 +344,13 @@ export function GardenCanvas({
         scaleY={zoom}
         x={stagePos.x}
         y={stagePos.y}
-        onMouseDown={handleStageMouseDown}
-        onMouseMove={handleStageMouseMove}
-        onMouseUp={handleStageMouseUp}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onWheel={handleWheel}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
         onClick={e => { if (e.target === e.target.getStage()) onSelectPlaced(null) }}
       >
         <Layer>
