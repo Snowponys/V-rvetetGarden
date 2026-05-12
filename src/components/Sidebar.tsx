@@ -21,11 +21,10 @@ interface Props {
   activeFilter: PlantCategory[]
   onFilterChange: (cat: PlantCategory) => void
   onSelectPlant: (plantId: string) => void
-  onClose: () => void
   onDragPlantId: (plantId: string) => void
 }
 
-export function Sidebar({ plants, placedPlants, activeFilter, onFilterChange, onSelectPlant, onClose, onDragPlantId }: Props) {
+export function Sidebar({ plants, placedPlants, activeFilter, onFilterChange, onSelectPlant, onDragPlantId }: Props) {
   const filtered = activeFilter.length === 0
     ? plants
     : plants.filter(p => activeFilter.includes(p.category))
@@ -47,14 +46,8 @@ export function Sidebar({ plants, placedPlants, activeFilter, onFilterChange, on
 
   return (
     <aside className="w-64 h-full bg-[#F7FBF1] flex flex-col shrink-0 rounded-tr-2xl rounded-br-2xl overflow-hidden" style={{ boxShadow: '3px 0 8px rgba(0,0,0,0.14)' }}>
-      <div className="pl-6 pr-4 pt-4 pb-4 flex items-center justify-between">
+      <div className="pl-6 pr-4 pt-4 pb-4">
         <h1 className="text-2xl font-semibold text-[#1d5200]">Vårvetet</h1>
-        <button
-          onClick={onClose}
-          className="w-8 h-8 rounded-full hover:bg-[#d4e8c2] flex items-center justify-center transition-colors"
-        >
-          <span className="material-symbols-rounded text-[#1d5200] text-xl leading-none select-none">menu_open</span>
-        </button>
       </div>
 
       {/* Filter chips */}

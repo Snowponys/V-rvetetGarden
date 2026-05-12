@@ -117,7 +117,7 @@ export default function App() {
         {sidebarOpen && (
           <motion.div
             key="sidebar"
-            className="absolute top-0 left-0 h-full z-20"
+            className="absolute top-0 left-0 h-full z-30"
             style={{ width: 256 }}
             initial={{ x: -256 }}
             animate={{ x: 0 }}
@@ -130,22 +130,25 @@ export default function App() {
               activeFilter={activeFilter}
               onFilterChange={handleFilterChange}
               onSelectPlant={handleSelectCatalogPlant}
-              onClose={() => setSidebarOpen(false)}
               onDragPlantId={() => {}}
             />
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Hamburger — only when sidebar is closed */}
-      {!sidebarOpen && (
+      {/* Single toggle button — tracks sidebar edge */}
+      <motion.div
+        className="absolute top-4 left-4 z-40"
+        animate={{ x: sidebarOpen ? 256 : 0 }}
+        transition={{ type: 'spring', damping: 28, stiffness: 280 }}
+      >
         <button
-          onClick={() => setSidebarOpen(true)}
-          className="absolute top-4 left-4 z-20 w-9 h-9 rounded-xl bg-white/80 backdrop-blur border border-[#c4c9bf] shadow-sm flex items-center justify-center hover:bg-white transition-colors"
+          onClick={() => setSidebarOpen(o => !o)}
+          className="w-9 h-9 rounded-xl bg-white/80 backdrop-blur border border-[#c4c9bf] shadow-sm flex items-center justify-center hover:bg-white transition-colors"
         >
           <span className="material-symbols-rounded text-[#1d5200] text-xl leading-none select-none">menu</span>
         </button>
-      )}
+      </motion.div>
 
       <ZoomControls zoom={zoom} onZoom={handleZoom} />
       <BottomCategoryBar />
