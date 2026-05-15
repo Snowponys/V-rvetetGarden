@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import type { Plant, PlantCategory } from '../types'
 import { guessCategoryFromHint } from '../hooks/useGemini'
 import { searchINaturalist, type INatSuggestion } from '../hooks/useINaturalist'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 interface Props {
   open: boolean
@@ -91,64 +93,67 @@ export function CanvasSearch({ open, categoryHint, onClose, onPlantReady }: Prop
             transition={{ type: 'spring', damping: 28, stiffness: 340 }}
           >
             {/* Search bar */}
-            <div className="bg-[#F7FBF1] rounded-full shadow-lg border border-[#c4c9bf] flex items-center gap-3 px-5 py-4">
-              <span className="material-symbols-rounded text-[#5ea143] text-xl leading-none shrink-0 select-none">search</span>
-              <input
+            <div className="bg-background rounded-full shadow-lg border border-border flex items-center gap-3 px-5 py-4">
+              <span className="material-symbols-rounded text-ring text-xl leading-none shrink-0 select-none">search</span>
+              <Input
                 ref={inputRef}
-                className="flex-1 bg-transparent outline-none text-[#1d5200] placeholder-[#8d9286] text-lg"
+                className="flex-1 h-auto border-none bg-transparent p-0 text-lg text-foreground placeholder:text-muted-foreground shadow-none focus-visible:ring-0"
                 placeholder={placeholder}
                 value={query}
                 onChange={e => setQuery(e.target.value)}
                 onKeyDown={e => e.key === 'Escape' && onClose()}
               />
-              {searching && <span className="material-symbols-rounded text-[#5ea143] text-lg leading-none shrink-0 animate-spin select-none">progress_activity</span>}
-              <button
+              {searching && <span className="material-symbols-rounded text-ring text-lg leading-none shrink-0 animate-spin select-none">progress_activity</span>}
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={onClose}
-                className="w-8 h-8 rounded-full hover:bg-[#d4e8c2] flex items-center justify-center transition-colors shrink-0"
+                className="rounded-full w-8 h-8 shrink-0 hover:bg-secondary"
               >
-                <span className="material-symbols-rounded text-[#5ea143] text-base leading-none select-none">close</span>
-              </button>
+                <span className="material-symbols-rounded text-ring text-base leading-none select-none">close</span>
+              </Button>
             </div>
 
             {/* Results card */}
             <AnimatePresence>
               {showCard && (
                 <motion.div
-                  className="bg-[#F7FBF1] rounded-[20px] shadow-lg border border-[#c4c9bf] overflow-hidden"
+                  className="bg-background rounded-[20px] shadow-lg border border-border overflow-hidden"
                   initial={{ opacity: 0, y: -6 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -6 }}
                   transition={{ duration: 0.15 }}
                 >
                   {searching ? (
-                    <div className="flex items-center justify-center gap-3 py-6 text-[#5ea143]">
+                    <div className="flex items-center justify-center gap-3 py-6 text-ring">
                       <span className="material-symbols-rounded text-lg leading-none animate-spin select-none">progress_activity</span>
                       <span className="text-sm">Söker växter…</span>
                     </div>
                   ) : error ? (
-                    <div className="px-6 py-5 text-sm text-[#ff5449]">{error}</div>
+                    <div className="px-6 py-5 text-sm text-destructive">{error}</div>
                   ) : suggestions.length > 0 ? (
                     suggestions.map((s, i) => (
-                      <button
+                      <Button
                         key={i}
-                        className="w-full flex items-center gap-4 px-4 py-3 text-left hover:bg-[#d4e8c2] transition-colors border-b border-[#dde3d7] last:border-0"
+                        variant="ghost"
+                        className="w-full flex items-center gap-4 px-4 py-3 h-auto justify-start border-b border-border last:border-0 hover:bg-accent rounded-none"
                         onClick={() => handleSelect(s)}
                       >
-                        <div className="w-10 h-10 rounded-xl bg-[#d4e8c2] shrink-0 overflow-hidden">
+                        <div className="w-10 h-10 rounded-xl bg-secondary shrink-0 overflow-hidden">
                           {s.photoUrl ? (
                             <img src={s.photoUrl} alt={s.commonName} className="w-full h-full object-cover" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-lg">🌿</div>
                           )}
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-[#1d5200] text-base font-medium truncate">{s.commonName}</div>
-                          <div className="text-xs text-[#8d9286] italic truncate">{s.scientificName}</div>
+                        <div className="flex-1 min-w-0 text-left">
+                          <div className="text-foreground text-base font-medium truncate">{s.commonName}</div>
+                          <div className="text-xs text-muted-foreground italic truncate">{s.scientificName}</div>
                         </div>
-                      </button>
+                      </Button>
                     ))
                   ) : (
-                    <p className="px-6 py-5 text-sm text-[#8d9286]">Inga träffar — försök med ett annat namn.</p>
+                    <p className="px-6 py-5 text-sm text-muted-foreground">Inga träffar — försök med ett annat namn.</p>
                   )}
                 </motion.div>
               )}

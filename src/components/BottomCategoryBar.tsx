@@ -49,7 +49,7 @@ function createDragGhost(label: string, icon: string): HTMLElement {
 export function BottomCategoryBar() {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-30 flex justify-center pb-5 pointer-events-none">
-      <div className="flex items-center gap-2 bg-[#F7FBF1]/90 backdrop-blur-md rounded-full shadow-xl border border-[#c4c9bf] px-3 py-2 pointer-events-auto">
+      <div className="flex items-center gap-2 bg-background/90 backdrop-blur-md rounded-full shadow-xl border border-border px-3 py-2 pointer-events-auto">
         {CATEGORIES.map(cat => (
           <div
             key={cat.hint}
@@ -63,10 +63,10 @@ export function BottomCategoryBar() {
               e.dataTransfer.setDragImage(ghost, ghost.offsetWidth / 2, ghost.offsetHeight / 2)
               requestAnimationFrame(() => document.body.removeChild(ghost))
             }}
-            className="flex items-center gap-2 px-4 py-2 rounded-full hover:bg-[#d4e8c2] cursor-grab active:cursor-grabbing transition-colors select-none"
+            className="flex items-center gap-2 px-4 py-2 rounded-full hover:bg-secondary cursor-grab active:cursor-grabbing transition-colors select-none"
           >
-            <span className="material-symbols-rounded text-[#1d5200] text-xl leading-none shrink-0">{cat.icon}</span>
-            <span className="text-sm font-medium text-[#1d5200] whitespace-nowrap">{cat.label}</span>
+            <span className="material-symbols-rounded text-foreground text-xl leading-none shrink-0">{cat.icon}</span>
+            <span className="text-sm font-medium text-foreground whitespace-nowrap">{cat.label}</span>
           </div>
         ))}
       </div>

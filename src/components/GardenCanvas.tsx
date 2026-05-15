@@ -332,7 +332,7 @@ export function GardenCanvas({
   return (
     <div
       ref={containerRef}
-      className="absolute inset-0 overflow-hidden bg-[#FDFCF9]"
+      className="absolute inset-0 overflow-hidden bg-background"
       onDrop={handleDrop}
       onDragOver={e => e.preventDefault()}
     >

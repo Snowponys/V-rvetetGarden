@@ -9,6 +9,7 @@ import { CanvasSearch } from './components/CanvasSearch'
 import { PlantDetailPanel } from './components/PlantDetailPanel'
 import { ZoomControls } from './components/ZoomControls'
 import { BottomCategoryBar } from './components/BottomCategoryBar'
+import { Button } from '@/components/ui/button'
 import type { Plant, PlantCategory } from './types'
 
 interface PendingDrop {
@@ -36,10 +37,8 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [activeFilter, setActiveFilter] = useState<PlantCategory[]>([])
 
-  const handleFilterChange = useCallback((cat: PlantCategory) => {
-    setActiveFilter(prev =>
-      prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat],
-    )
+  const handleFilterChange = useCallback((cats: PlantCategory[]) => {
+    setActiveFilter(cats)
   }, [])
 
   const selectedPlaced = placedPlants.find(pp => pp.id === selectedPlacedId) ?? null
@@ -97,7 +96,7 @@ export default function App() {
   }, [])
 
   return (
-    <div className="h-screen w-screen overflow-hidden relative bg-[#F7FBF1]">
+    <div className="h-screen w-screen overflow-hidden relative bg-background">
       {/* Canvas fills full viewport */}
       <GardenCanvas
         plants={plants}
@@ -142,12 +141,14 @@ export default function App() {
         animate={{ x: sidebarOpen ? 256 : 0 }}
         transition={{ type: 'spring', damping: 28, stiffness: 280 }}
       >
-        <button
+        <Button
+          variant="outline"
+          size="icon"
           onClick={() => setSidebarOpen(o => !o)}
-          className="w-9 h-9 rounded-xl bg-white/80 backdrop-blur border border-[#c4c9bf] shadow-sm flex items-center justify-center hover:bg-white transition-colors"
+          className="rounded-xl bg-background/80 backdrop-blur shadow-sm"
         >
-          <span className="material-symbols-rounded text-[#1d5200] text-xl leading-none select-none">menu</span>
-        </button>
+          <span className="material-symbols-rounded text-foreground text-xl leading-none select-none">menu</span>
+        </Button>
       </motion.div>
 
       <ZoomControls zoom={zoom} onZoom={handleZoom} />
